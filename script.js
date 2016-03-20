@@ -20,7 +20,7 @@ var fade = function(direction) {
         clearInterval(interval);
         window.changingVolume = false;
       }
-    }, 10);
+    }, 15);
   }
 }
 
@@ -39,7 +39,7 @@ var changeTrack = function (index) {
     window.changingTrack = false;
     $('.sc-trackslist li').eq(index).click();
     fadeUp();
-  }, 1500);
+  }, 2000);
 }
 
 var onScroll = function (tracksArray, lastScrollTop) {
@@ -52,24 +52,33 @@ var onScroll = function (tracksArray, lastScrollTop) {
     documentHeight = $(document).height();
 
   $.each(tracksArray, function(i, val) {
+    var last;
 
     if (!tracksArray[(i + 1)]) {
       // Last track
       var active = val < scrollTop && scrollTop > tracksArray[i - 1];
+      last = true;
     } else {
       var active = scrollTop > val && scrollTop < tracksArray[i + 1];
+      last = false;
     }
 
     var activeClass = active ? 'active' : null;
     var topPos = val / (documentHeight - windowHeight) * 100;
 
-    htmlArray.push("<div data-position='" + val + "' class='" + activeClass + "' style='top: " + topPos + "%;'>" + $('.sc-trackslist li').eq(i).find('a').text() + "</div>");
+    htmlArray.push("<div data-position='" + val + "' class='" + activeClass + "' style='top: " + topPos + "%;'>" + ($('.sc-trackslist li').eq(i).find('a').text() || 'Fin' ) + "</div>");
 
     if (active && !window.changingTrack) {
-      if ( !$('.sc-player').hasClass('playing') ) {
-        changeTrack(i);
-      } else if (!$('.sc-trackslist li').eq(i).hasClass('active')) {
-        changeTrack(i);
+
+      if (!!last) {
+        fadeDown();
+      } else {
+        fadeUp();
+        if ( !$('.sc-player').hasClass('playing') ) {
+          changeTrack(i);
+        } else if (!$('.sc-trackslist li').eq(i).hasClass('active')) {
+          changeTrack(i);
+        }
       }
     }
 
@@ -126,33 +135,30 @@ $(function() {
         $('#mute').addClass('active');
       }
 
-      window.tracksArray = [];
+      var lastScrollTop = 0,
+          $window = $(window),
+          $separatorElems = $('.sqs-block-gallery, hr.track-separator');
 
-      var $separatorElems = $('.sqs-block-gallery, hr.track-separator');
-
-      $separatorElems.each(function() {  //
-        window.tracksArray.push($(this).offset().top - $(window).height() / 2 );
-      });
-
-      var lastScrollTop = 0;
-
-      $(window).on('scroll', function(e) {
+      var handleScroll = function() {
         window.tracksArray = [];
-        $separatorElems.each(function() {
-          window.tracksArray.push($(this).offset().top - $(window).height() / 2 - 40 );
-        });
-        onScroll(tracksArray, lastScrollTop);
-      });
 
-      $(window).on('resize', function(e) {
-        window.tracksArray = [];
-        $separatorElems.each(function() {
-          window.tracksArray.push($(this).offset().top - $(window).height() / 2 - 40 );
+        $separatorElems.each(function() {  //
+          window.tracksArray.push($(this).offset().top - $window.height() / 2 );
         });
-        onScroll(tracksArray, lastScrollTop);
-      });
 
-      onScroll(tracksArray, lastScrollTop);
+        var $lastEl = $separatorElems.eq($separatorElems.length - 1),
+         offsetLast = $lastEl.offset().top + $lastEl.outerHeight() - $window.height();
+
+        window.tracksArray.push( offsetLast );
+
+        onScroll(tracksArray, lastScrollTop);
+      }
+
+      handleScroll();
+
+      $window.on('scroll', handleScroll);
+      $window.on('resize', handleScroll);
+
       $('#scroll-map').removeClass('loading');
     });
 
