@@ -66,7 +66,7 @@ var onScroll = function (tracksArray, lastScrollTop) {
     var activeClass = active ? 'active' : null;
     var topPos = val / (documentHeight - windowHeight) * 100;
 
-    htmlArray.push("<div data-position='" + val + "' class='" + activeClass + "' style='top: " + topPos + "%;'>" + ($('.sc-trackslist li').eq(i).find('a').text() || 'Fin' ) + "</div>");
+    htmlArray.push("<div data-position='" + val + "' class='" + activeClass + "' style='top: " + topPos + "%;'>" + ($('.sc-trackslist li').eq(i).find('a').text() || 'End' ) + "</div>");
 
     if (active && !window.changingTrack) {
 
